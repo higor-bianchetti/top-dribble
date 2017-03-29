@@ -4,22 +4,19 @@
 
     init : function(options) {
       var defaults = {
-        duration: 200, // ms
+        time_constant: 200, // ms
         dist: -100, // zoom scale TODO: make this more intuitive as an option
         shift: 0, // spacing for center image
         padding: 0, // Padding between non center items
-        fullWidth: false, // Change to full width styles
+        full_width: false, // Change to full width styles
         indicators: false, // Toggle indicators
-        noWrap: false, // Don't wrap around and cycle through items.
-        onCycleTo: null // Callback for when a new slide is cycled to.
+        no_wrap: false // Don't wrap around and cycle through items.
       };
       options = $.extend(defaults, options);
-      var namespace = Materialize.objectSelectorString($(this));
 
-      return this.each(function(i) {
+      return this.each(function() {
 
-        var uniqueNamespace = namespace+i;
-        var images, item_width, item_height, offset, center, pressed, dim, count,
+        var images, offset, center, pressed, dim, count,
             reference, referenceY, amplitude, target, velocity,
             xform, frame, timestamp, ticker, dragged, vertical_dragged;
         var $indicators = $('<ul class="indicators"></ul>');
@@ -38,11 +35,11 @@
 
 
         // Options
-        if (options.fullWidth) {
+        if (options.full_width) {
           options.dist = 0;
           var firstImage = view.find('.carousel-item img').first();
           if (firstImage.length) {
-            imageHeight = firstImage.on('load', function(){
+            imageHeight = firstImage.load(function(){
               view.css('height', $(this).height());
             });
           } else {
@@ -62,7 +59,6 @@
         offset = target = 0;
         images = [];
         item_width = view.find('.carousel-item').first().innerWidth();
-        item_height = view.find('.carousel-item').first().innerHeight();
         dim = item_width * 2 + options.padding;
 
         view.find('.carousel-item').each(function (i) {
@@ -76,9 +72,7 @@
             }
 
             // Handle clicks on indicators.
-            $indicator.click(function (e) {
-              e.stopPropagation();
-
+            $indicator.click(function () {
               var index = $(this).index();
               cycleTo(index);
             });
@@ -131,7 +125,6 @@
 
         function scroll(x) {
           var i, half, delta, dir, tween, el, alignment, xTranslation;
-          var lastCenter = center;
 
           offset = (typeof x === 'number') ? x : offset;
           center = Math.floor((offset + dim / 2) / dim);
@@ -140,9 +133,9 @@
           tween = -dir * delta * 2 / dim;
           half = count >> 1;
 
-          if (!options.fullWidth) {
+          if (!options.full_width) {
             alignment = 'translateX(' + (view[0].clientWidth - item_width) / 2 + 'px) ';
-            alignment += 'translateY(' + (view[0].clientHeight - item_height) / 2 + 'px)';
+            alignment += 'translateY(' + (view[0].clientHeight - item_width) / 2 + 'px)';
           } else {
             alignment = 'translateX(0)';
           }
@@ -159,20 +152,14 @@
 
           // center
           // Don't show wrapped items.
-          if (!options.noWrap || (center >= 0 && center < count)) {
+          if (!options.no_wrap || (center >= 0 && center < count)) {
             el = images[wrap(center)];
-
-            // Add active class to center item.
-            if (!$(el).hasClass('active')) {
-              view.find('.carousel-item').removeClass('active');
-              $(el).addClass('active');
-            }
             el.style[xform] = alignment +
               ' translateX(' + (-delta / 2) + 'px)' +
               ' translateX(' + (dir * options.shift * tween * i) + 'px)' +
               ' translateZ(' + (options.dist * tween) + 'px)';
             el.style.zIndex = 0;
-            if (options.fullWidth) { tweenedOpacity = 1; }
+            if (options.full_width) { tweenedOpacity = 1; }
             else { tweenedOpacity = 1 - 0.2 * tween; }
             el.style.opacity = tweenedOpacity;
             el.style.display = 'block';
@@ -180,7 +167,7 @@
 
           for (i = 1; i <= half; ++i) {
             // right side
-            if (options.fullWidth) {
+            if (options.full_width) {
               zTranslation = options.dist;
               tweenedOpacity = (i === half && delta < 0) ? 1 - tween : 1;
             } else {
@@ -188,7 +175,7 @@
               tweenedOpacity = 1 - 0.2 * (i * 2 + tween * dir);
             }
             // Don't show wrapped items.
-            if (!options.noWrap || center + i < count) {
+            if (!options.no_wrap || center + i < count) {
               el = images[wrap(center + i)];
               el.style[xform] = alignment +
                 ' translateX(' + (options.shift + (dim * i - delta) / 2) + 'px)' +
@@ -200,7 +187,7 @@
 
 
             // left side
-            if (options.fullWidth) {
+            if (options.full_width) {
               zTranslation = options.dist;
               tweenedOpacity = (i === half && delta > 0) ? 1 - tween : 1;
             } else {
@@ -208,7 +195,7 @@
               tweenedOpacity = 1 - 0.2 * (i * 2 - tween * dir);
             }
             // Don't show wrapped items.
-            if (!options.noWrap || center - i >= 0) {
+            if (!options.no_wrap || center - i >= 0) {
               el = images[wrap(center - i)];
               el.style[xform] = alignment +
                 ' translateX(' + (-options.shift + (-dim * i - delta) / 2) + 'px)' +
@@ -221,24 +208,17 @@
 
           // center
           // Don't show wrapped items.
-          if (!options.noWrap || (center >= 0 && center < count)) {
+          if (!options.no_wrap || (center >= 0 && center < count)) {
             el = images[wrap(center)];
             el.style[xform] = alignment +
               ' translateX(' + (-delta / 2) + 'px)' +
               ' translateX(' + (dir * options.shift * tween) + 'px)' +
               ' translateZ(' + (options.dist * tween) + 'px)';
             el.style.zIndex = 0;
-            if (options.fullWidth) { tweenedOpacity = 1; }
+            if (options.full_width) { tweenedOpacity = 1; }
             else { tweenedOpacity = 1 - 0.2 * tween; }
             el.style.opacity = tweenedOpacity;
             el.style.display = 'block';
-          }
-
-          // onCycleTo callback
-          if (lastCenter !== center &&
-              typeof(options.onCycleTo) === "function") {
-            var $curr_item = view.find('.carousel-item').eq(wrap(center));
-            options.onCycleTo.call(this, $curr_item, dragged);
           }
         }
 
@@ -260,7 +240,7 @@
 
           if (amplitude) {
             elapsed = Date.now() - timestamp;
-            delta = amplitude * Math.exp(-elapsed / options.duration);
+            delta = amplitude * Math.exp(-elapsed / options.time_constant);
             if (delta > 2 || delta < -2) {
                 scroll(target - delta);
                 requestAnimationFrame(autoScroll);
@@ -277,7 +257,7 @@
             e.stopPropagation();
             return false;
 
-          } else if (!options.fullWidth) {
+          } else if (!options.full_width) {
             var clickedIndex = $(e.target).closest('.carousel-item').index();
             var diff = (center % count) - clickedIndex;
 
@@ -294,7 +274,7 @@
           var diff = (center % count) - n;
 
           // Account for wraparound.
-          if (!options.noWrap) {
+          if (!options.no_wrap) {
             if (diff < 0) {
               if (Math.abs(diff + count) < Math.abs(diff)) { diff += count; }
 
@@ -313,7 +293,6 @@
         }
 
         function tap(e) {
-          e.preventDefault();
           pressed = true;
           dragged = false;
           vertical_dragged = false;
@@ -325,6 +304,7 @@
           timestamp = Date.now();
           clearInterval(ticker);
           ticker = setInterval(track, 100);
+
         }
 
         function drag(e) {
@@ -378,7 +358,7 @@
           target = Math.round(target / dim) * dim;
 
           // No wrap of items.
-          if (options.noWrap) {
+          if (options.no_wrap) {
             if (target >= dim * (count - 1)) {
               target = dim * (count - 1);
             } else if (target < 0) {
@@ -407,17 +387,8 @@
         });
 
 
-        $(window).off('resize.'+uniqueNamespace).on('resize.'+uniqueNamespace, function() {
-          if (options.fullWidth) {
-            item_width = view.find('.carousel-item').first().innerWidth();
-            item_height = view.find('.carousel-item').first().innerHeight();
-            dim = item_width * 2 + options.padding;
-            offset = center * 2 * item_width;
-            target = offset;
-          } else {
-            scroll();
-          }
-        });
+
+        window.onresize = scroll;
 
         setupEvents();
         scroll(offset);
@@ -426,7 +397,7 @@
           if (n === undefined) {
             n = 1;
           }
-          target = (dim * Math.round(offset / dim)) + (dim * n);
+          target = offset + dim * n;
           if (offset !== target) {
             amplitude = target - offset;
             timestamp = Date.now();
@@ -438,7 +409,7 @@
           if (n === undefined) {
             n = 1;
           }
-          target = (dim * Math.round(offset / dim)) - (dim * n);
+          target = offset - dim * n;
           if (offset !== target) {
             amplitude = target - offset;
             timestamp = Date.now();
